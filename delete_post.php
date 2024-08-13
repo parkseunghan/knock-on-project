@@ -1,5 +1,5 @@
 <?php
-$mysqli = new $mysqli("localhost", "root", "", "board");
+$mysqli = new mysqli("localhost", "root", "", "board");
 
 if($mysqli->connect_error) {
     die("Connection failed: " . $mysqli->connect_error);
@@ -8,11 +8,10 @@ if($mysqli->connect_error) {
 $id = $_GET['id'];
 
 // 게시물 삭제
-$stmp = $mysqli->prepare("DELETE FROM posts WHERE id = ?");
-$stmp->bind_param("i", $id);
-$stmp->execute();
-$stmp->close();
-
+$stmt = $mysqli->prepare("DELETE FROM posts WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$stmt->close();
 $mysqli->close();
 
 header("Location: index.php");

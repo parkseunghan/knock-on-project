@@ -1,21 +1,38 @@
 <?php
-$mysqli = new $mysqli("localhost", "root", "", "board");
+$mysqli = new mysqli("localhost", "root", "", "board");
 
 if($mysqli->connect_error) {
     die("Connection failed: " . $mysqli->connect_error);
 }
 
-$id = $_GET['id'];
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if (isset($_GET['id']) && !is_array($_GET['id'])) {
+    $id = intval($_GET['id']);
+} else {
+    echo "잘못된 요청입니다.";
+    exit();
+}
+
+
+$stmt = $mysqli->prepare("SELECT title, content FROM posts WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$stmt->bind_result($title, $content);
+$stmt->fetch();
+$stmt->close();
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'];
     $content = $_POST['content'];
 
     // 게시물 업데이트
-    $stmp = $mysqli->prepare("UPDATE posts SET title = ?, content = ?, WHERE id = ?");
-    $stmp->bind_param("ssi", $title, $content, $id);
-    $stmp->execute();
-    $stmp->close();
+    $stmt = $mysqli->prepare("UPDATE posts SET title = ?, content = ? WHERE id = ?");
+    $stmt->bind_param("ssi", $title, $content, $id);
+    $stmt->execute();
+    $stmt->close();
 
+
+    echo "게시물이 성공적으로 수정되었습니다.";
     header("Location: index.php");
     exit();
 }
