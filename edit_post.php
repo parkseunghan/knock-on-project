@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 게시물 업데이트
     $stmp = $mysqli->prepare("UPDATE posts SET title = ?, content = ?, WHERE id = ?");
     $stmp->bind_param("ssi", $title, $content, $id);
-    $stmp->excute();
+    $stmp->execute();
     $stmp->close();
 
     header("Location: index.php");

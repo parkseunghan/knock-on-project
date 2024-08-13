@@ -12,7 +12,7 @@ if ($server['REQUEST_METHOD'] == 'POST') {
     // 게시물 추가
     $stmt = $mysqli->prepare("INSERT INTO posts (title, content) VALUES (?, ?)");
     $stmt->bind_param("ss", $title, $content);
-    $stmt->excute();
+    $stmt->execute();
     $stmt->close();
     $mysqli->close();
 
