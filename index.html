@@ -1,9 +1,10 @@
 <form method="POST" action="">
     <label for="title">제목:</label>
-    <input type="text" id="title" name="title" required>
+    <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($post['title']); ?>" required>
     <br>
     <label for="content">내용:</label>
-    <textarea id="content" name="content" required></textarea>
+    <textarea id="content" name="content" required><?php echo htmlspecialchars($post['content']); ?></textarea>
     <br>
-    <button type="submit">게시</button>
+    <button type="submit">수정</button>
 </form>
+<a href="delete_post.php?id=<?php echo $id; ?>">삭제</a>
