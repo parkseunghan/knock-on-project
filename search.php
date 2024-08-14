@@ -6,27 +6,56 @@ if ($mysqli->connect_error) {
 }
 
 $query = isset($_GET['query']) ? $mysqli->real_escape_string($_GET['query']) : '';
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$page = ($page > 0) ? $page : 1; // 페이지가 1보다 작은 경우 1로 설정
+
+// 페이지당 게시물 수
+$post_per_page = 7;
+$offset = ($page - 1) * $post_per_page;
 
 if ($query) {
-    $stmt = $mysqli->prepare("SELECT id, title, content, created_at, updated_at FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC");
+    // 총 게시물 수 계산
+    $total_stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts WHERE title LIKE ? OR content LIKE ?");
     $search_term = '%' . $query . '%';
-    $stmt->bind_param("ss", $search_term, $search_term);
+    $total_stmt->bind_param("ss", $search_term, $search_term);
+    $total_stmt->execute();
+    $total_stmt->bind_result($total_posts);
+    $total_stmt->fetch();
+    $total_stmt->close();
+
+    // 검색 결과 가져오기
+    $stmt = $mysqli->prepare("SELECT id, title, content, created_at, updated_at FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC LIMIT ?, ?");
+    $stmt->bind_param("ssii", $search_term, $search_term, $offset, $post_per_page);
     $stmt->execute();
     $result = $stmt->get_result();
     $stmt->close();
 } else {
-    $result = $mysqli->query("SELECT id, title, content, created_at, updated_at FROM posts ORDER BY created_at DESC");
+    // 총 게시물 수 계산
+    $total_stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts");
+    $total_stmt->execute();
+    $total_stmt->bind_result($total_posts);
+    $total_stmt->fetch();
+    $total_stmt->close();
+
+    // 모든 게시물 가져오기
+    $stmt = $mysqli->prepare("SELECT id, title, content, created_at, updated_at FROM posts ORDER BY created_at DESC LIMIT ?, ?");
+    $stmt->bind_param("ii", $offset, $post_per_page);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
 }
 
-function truncateContent($content, $maxLength = 100){
+$mysqli->close();
+
+$total_pages = ceil($total_posts / $post_per_page);
+
+function truncateContent($content, $maxLength = 100) {
     if (strlen($content) > $maxLength) {
         return substr($content, 0, $maxLength) . '...';
     } else {
         return $content;
     }
 }
-
-$mysqli->close();
 ?>
 
 <!DOCTYPE html>
@@ -61,5 +90,24 @@ $mysqli->close();
     <?php else: ?>
         <p>검색 결과가 없습니다.</p>
     <?php endif; ?>
+
+    <!-- 페이지 네비게이션 -->
+    <nav aria-label="Page navigation">
+        <ul>
+            <?php if ($page > 1): ?>
+                <li><a href="?query=<?php echo urlencode($query); ?>&page=<?php echo $page - 1; ?>">이전</a></li>
+            <?php endif; ?>
+
+            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                <li>
+                    <a href="?query=<?php echo urlencode($query); ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                </li>
+            <?php endfor; ?>
+
+            <?php if ($page < $total_pages): ?>
+                <li><a href="?query=<?php echo urlencode($query); ?>&page=<?php echo $page + 1; ?>">다음</a></li>
+            <?php endif; ?>
+        </ul>
+    </nav>
 </body>
 </html>

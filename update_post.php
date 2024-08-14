@@ -17,7 +17,12 @@ $stmt = $mysqli->prepare("SELECT title, content, file_path FROM posts WHERE id =
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $stmt->bind_result($title, $content, $existing_file_path);
-$stmt->fetch();
+
+if (!$stmt->fetch()) {
+    echo "게시물이 존재하지 않습니다.";
+    exit();
+}
+
 $stmt->close();
 
 
