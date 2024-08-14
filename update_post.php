@@ -64,27 +64,46 @@ $post = $result->fetch_assoc();
 $mysqli->close();
 ?>
 
-<a href="index.php">메인으로</a>
-<hr>
-<form method="POST" action="" enctype="multipart/form-data">
-    <label for="title">제목:</label>
-    <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($post['title']); ?>" required>
-    <br>
-    <label for="content">내용:</label>
-    <textarea id="content" name="content" required><?php echo htmlspecialchars($post['content']); ?></textarea>
-    <br>
-    <label for="file">파일 업로드:</label>
-    <input type="file" id="file" name="file">
-    <br>
-    <?php if($post['file_path']): ?>
-        <p>현재 업로드된 파일: <a href="<?php echo $post['file_path']; ?>" target="_blank"><?php echo basename($post['file_path']); ?></a></p>
-    <?php endif; ?>    
-    <button type="submit">수정</button>
-</form>
-<a href="delete_post.php?id=<?php echo $id; ?>" onclick="return confirmDeletion();">삭제</a>
 
-<script>
-    function confirmDeletion() { 
-        return confirm("정말로 삭제하시겠습니까?");
-    }
-</script>
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시물 수정</title>
+</head>
+
+<body>
+    <a href="index.php">메인으로</a>
+
+    <h1>게시물 수정</h1>
+
+    <hr>
+    <form method="POST" action="" enctype="multipart/form-data">
+        <label for="title"><strong>제목:</strong></label>
+        <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($title); ?>" required>
+        <br>
+        <label for="content">내용:</label>
+        <textarea id="content" name="content" required><?php echo htmlspecialchars($content); ?></textarea>
+        <br>
+        <label for="file">파일 업로드:</label>
+        <input type="file" id="file" name="file">
+        <br>
+        <?php if ($file_path): ?>
+        <p>현재 업로드된 파일:
+            <?php echo htmlspecialchars(basename($file_path)); ?>
+        </p>
+        <?php endif; ?>
+        <button type="submit">수정</button>
+    </form>
+    <a href="delete_post.php?id=<?php echo $id; ?>" onclick="return confirmDeletion();">삭제</a>
+
+    <script>
+        function confirmDeletion() {
+            return confirm("정말로 삭제하시겠습니까?");
+        }
+    </script>
+</body>
+
+</html>

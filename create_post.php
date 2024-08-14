@@ -43,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <a href="index.php">메인으로</a>
 <hr>
+<h1>새 글 쓰기</h1>
+<hr>
 <form method="POST" action="" enctype = "multipart/form-data">
     <label for="title">제목:</label>
     <input type="text" id="title" name="title" required>
