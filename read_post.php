@@ -73,11 +73,13 @@ $is_author = isset($_SESSION['id']) && $_SESSION['id'] === $post_user_id;
     <br>
     <p><?php echo nl2br(htmlspecialchars($content)); ?></p>
     <br>
+  
+
     <?php if ($file_path): ?>
-        <hr>
-        <p>첨부 파일: <a href="<?php echo htmlspecialchars($file_path); ?>" target="_blank"><?php echo htmlspecialchars(basename($file_path)); ?></a></p>
+    <hr>
+    <p>첨부 파일: <a href="download.php?file=<?php echo urlencode($file_path); ?>"><?php echo htmlspecialchars(basename($file_path)); ?></a></p>
     <?php else: ?>
-        <p>첨부 파일: 없음</p>
+    <p>첨부 파일: 없음</p>
     <?php endif; ?>
 
     <hr>

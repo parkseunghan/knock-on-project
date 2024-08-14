@@ -16,12 +16,22 @@ if (!isset($_SESSION['id'])) {
 $user_id = $_SESSION['id'];
 
 // 현재 사용자가 작성한 게시물 가져오기
-$stmt = $mysqli->prepare("SELECT id, title, created_at, updated_at FROM posts WHERE user_id = ? ORDER BY created_at DESC");
+$stmt = $mysqli->prepare("
+    SELECT id, title, content, created_at, updated_at 
+    FROM posts 
+    WHERE user_id = ? 
+    ORDER BY created_at DESC
+");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $stmt->close();
 $mysqli->close();
+
+// 내용 자르기 함수
+function truncateContent($content, $maxLength = 100) {
+    return strlen($content) > $maxLength ? substr($content, 0, $maxLength) . '...' : $content;
+}
 ?>
 
 <!DOCTYPE html>
@@ -39,12 +49,13 @@ $mysqli->close();
 
     <?php if ($result->num_rows > 0): ?>
         <?php while ($row = $result->fetch_assoc()): ?>
-            <h2><a href="read_post.php?id=<?php echo $row['id']; ?>"><?php echo htmlspecialchars($row['title']); ?></a></h2>
+            <h2><a href="read_post.php?id=<?php echo htmlspecialchars($row['id']); ?>"><?php echo htmlspecialchars($row['title']); ?></a></h2>
             <p>게시일: <?php echo date('Y.m.d H:i', strtotime($row['created_at'])); ?>
                 <?php if ($row['updated_at']): ?>
                     (수정일: <?php echo date('Y.m.d H:i', strtotime($row['updated_at'])); ?>)
                 <?php endif; ?>
             </p>
+            <p><?php echo htmlspecialchars(truncateContent($row['content'])); ?></p>
             <hr>
         <?php endwhile; ?>
     <?php else: ?>
