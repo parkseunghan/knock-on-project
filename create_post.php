@@ -36,11 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mysqli->close();
 
     // 메인으로 리다이렉트
-    header("Location: index.php");
+    echo "<script>alert('게시물이 작성되었습니다.'); window.location.href='index.php';</script>";
     exit();
 }
 ?>
 
+<a href="index.php">메인으로</a>
+<hr>
 <form method="POST" action="" enctype = "multipart/form-data">
     <label for="title">제목:</label>
     <input type="text" id="title" name="title" required>

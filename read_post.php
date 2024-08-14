@@ -30,23 +30,29 @@ $display_date = $created_at->format('Y. m. d H:i');
 if ($updated_at) {
     $display_date .= ' (수정일: ' . $updated_at->format('Y. m. d H:i') . ')';
 }
-
-
 ?>
-<h1><?php echo htmlspecialchars($title); ?></h1>
+
+
+
 <a href="index.php">메인으로</a>
-<br>
+<hr>
+<h1><?php echo htmlspecialchars($title); ?></h1>
 <p>게시일: <?php echo htmlspecialchars($display_date); ?></p>
-<a href="edit_post.php?id=<?php echo $id; ?>">수정</a>
-<a href="delete_post.php?id=<?php echo $id; ?>">삭제</a>
+<a href="update_post.php?id=<?php echo $id; ?>">수정</a>
+<a href="delete_post.php?id=<?php echo $id; ?>" onclick="return confirmDeletion();">삭제</a>
 <hr>
 <br>
 <p><?php echo htmlspecialchars($content); ?></p>
 <br>
-<hr>
 <?php if ($file_path): ?>
+    <hr>
     <p>첨부 파일: <a href="<?php echo $file_path; ?>" target="_blank"><?php echo basename($file_path); ?></a></p>
 <?php endif; ?>
 
 <hr>
 
+<script>
+    function confirmDeletion() { 
+        return confirm("정말로 삭제하시겠습니까?");
+    }
+</script>

@@ -1,5 +1,8 @@
 <h1>게시판</h1>
-<a href="add_post.php">게시물 작성</a>
+<a href="create_post.php">새 글 작성</a>
+<br>
+<a href="search_post.php">게시물 검색</a>
+<hr>
 <?php
 
 $mysqli = new mysqli("localhost", "root", "", "board");
@@ -20,11 +23,11 @@ while ($post = $result->fetch_assoc()):
     }
 
 ?>
-    <h2><a href="view.php?id=<?php echo $post['id']; ?>"><?php echo htmlspecialchars($post['title']); ?></a></h2>
+    <h2><a href="read_post.php?id=<?php echo $post['id']; ?>"><?php echo htmlspecialchars($post['title']); ?></a></h2>
     <p><?php echo htmlspecialchars($post['content']); ?></p>
     <p>게시일: <?php echo htmlspecialchars($display_date); ?></p>
     <?php if($post['file_path']): ?>
-        <p>첨부 파일: <a href="<?php echo $post['file_path']; ?>" target="_blank"><?php echo basename($post['file_path']); ?></a></p>
+        <p>첨부 파일: <?php echo htmlspecialchars(basename($post['file_path'])); ?></p>
     <?php endif; ?>
     <hr>
 <?php

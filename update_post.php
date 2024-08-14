@@ -55,8 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 
 
-    echo "게시물이 성공적으로 수정되었습니다.";
-    header("Location: index.php");
+    echo "<script>alert('게시물이 수정되었습니다.'); window.location.href='index.php';</script>";
     exit();
 }
 
@@ -65,6 +64,8 @@ $post = $result->fetch_assoc();
 $mysqli->close();
 ?>
 
+<a href="index.php">메인으로</a>
+<hr>
 <form method="POST" action="" enctype="multipart/form-data">
     <label for="title">제목:</label>
     <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($post['title']); ?>" required>
@@ -80,4 +81,10 @@ $mysqli->close();
     <?php endif; ?>    
     <button type="submit">수정</button>
 </form>
-<a href="delete_post.php?id=<?php echo $id; ?>">삭제</a>
+<a href="delete_post.php?id=<?php echo $id; ?>" onclick="return confirmDeletion();">삭제</a>
+
+<script>
+    function confirmDeletion() { 
+        return confirm("정말로 삭제하시겠습니까?");
+    }
+</script>

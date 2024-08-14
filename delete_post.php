@@ -8,7 +8,7 @@ if($mysqli->connect_error) {
 if (isset($_GET['id']) && !is_array($_GET['id'])) {
     $id = intval($_GET['id']);
 } else {
-    echo "잘못된 요청입니다.";
+    echo "<script>alert('잘못된 요청입니다.');</script>";
     exit();
 }
 
@@ -36,6 +36,7 @@ if ($file_path && file_exists($file_path)) {
 
 $mysqli->close();
 
-header("Location: index.php");
+echo "<script>alert('게시물이 삭제되었습니다.'); window.location.href='index.php';</script>";
+// header("Location: index.php");
 exit();
 ?>
