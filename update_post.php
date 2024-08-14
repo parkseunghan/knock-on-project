@@ -55,6 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
+        // 파일 용량 제한 
+        $max_file_size = 10 * 1024 * 1024; 
+
+        if ($_FILES['file']['size'] > $max_file_size) {
+            echo "파일 용량 초과 (최대 10MB)";
+            exit();
+        }
+
         $file_name = time() . '_' . uniqid() . '_' . basename($_FILES['file']['name']);
         $new_file_path = $upload_dir . $file_name;
 
