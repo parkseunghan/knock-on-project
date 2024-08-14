@@ -15,23 +15,38 @@ if (isset($_GET['id']) && !is_array($_GET['id'])){
 }
 
 // SQL 쿼리로 해당 게시물 가져오기
-$stmt = $mysqli->prepare("SELECT title, content, created_at FROM posts WHERE id = ?");
+$stmt = $mysqli->prepare("SELECT title, content, file_path, created_at, updated_at FROM posts WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
-$stmt->bind_result($title, $content, $created_at);
+$stmt->bind_result($title, $content, $file_path, $created_at, $updated_at);
 $stmt->fetch();
 $stmt->close();
 $mysqli->close();
 
-if ($title) {
-    echo "<h1>" . htmlspecialchars($title) . "</h1>";
-    echo "<p>작성일: " . $created_at . "</p>";
-    echo "<p>" . nl2br(htmlspecialchars($content)) . "</p>";
-} else {
-    echo "<p>해당 게시물을 찾을 수 없습니다.</p>";
-}
-?>
+$created_at = new DateTime($created_at);
+$updated_at = $updated_at ? new DateTime($updated_at) : null;
+$display_date = $created_at->format('Y. m. d H:i');
 
-<a href="index.php">메인화면으로 돌아가기</a>
-<a href="edit_post.php?id=<?php echo $id; ?>">게시물 수정</a>
-<a href="delete_post.php?id=<?php echo $id; ?>">게시물 삭제</a>
+if ($updated_at) {
+    $display_date .= ' (수정일: ' . $updated_at->format('Y. m. d H:i') . ')';
+}
+
+
+?>
+<h1><?php echo htmlspecialchars($title); ?></h1>
+<a href="index.php">메인으로</a>
+<br>
+<p>게시일: <?php echo htmlspecialchars($display_date); ?></p>
+<a href="edit_post.php?id=<?php echo $id; ?>">수정</a>
+<a href="delete_post.php?id=<?php echo $id; ?>">삭제</a>
+<hr>
+<br>
+<p><?php echo htmlspecialchars($content); ?></p>
+<br>
+<hr>
+<?php if ($file_path): ?>
+    <p>첨부 파일: <a href="<?php echo $file_path; ?>" target="_blank"><?php echo basename($file_path); ?></a></p>
+<?php endif; ?>
+
+<hr>
+
