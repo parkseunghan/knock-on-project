@@ -14,7 +14,7 @@ $post_per_page = 7;
 $offset = ($page - 1) * $post_per_page;
 
 if ($query) {
-    // 총 게시물 수 계산
+    // 검색어가 있는 경우: 총 게시물 수 계산
     $total_stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts WHERE title LIKE ? OR content LIKE ?");
     $search_term = '%' . $query . '%';
     $total_stmt->bind_param("ss", $search_term, $search_term);
@@ -30,7 +30,7 @@ if ($query) {
     $result = $stmt->get_result();
     $stmt->close();
 } else {
-    // 총 게시물 수 계산
+    // 검색어가 없는 경우: 총 게시물 수 계산
     $total_stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts");
     $total_stmt->execute();
     $total_stmt->bind_result($total_posts);
@@ -50,11 +50,7 @@ $mysqli->close();
 $total_pages = ceil($total_posts / $post_per_page);
 
 function truncateContent($content, $maxLength = 100) {
-    if (strlen($content) > $maxLength) {
-        return substr($content, 0, $maxLength) . '...';
-    } else {
-        return $content;
-    }
+    return strlen($content) > $maxLength ? substr($content, 0, $maxLength) . '...' : $content;
 }
 ?>
 

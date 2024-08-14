@@ -6,6 +6,7 @@ if ($mysqli->connect_error) {
 }
 
 $errors = [];
+$username_exists = false;  // 아이디 중복 상태를 저장하는 변수
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -39,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 중복 사용자 검사
-    if (empty($errors)) {
+    if (empty($errors) && !$username_exists) {
         $stmt = $mysqli->prepare("SELECT id FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
@@ -76,6 +77,23 @@ $mysqli->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회원가입</title>
+    <script>
+        function checkUsername() {
+            const username = document.getElementById('username').value;
+            const resultDiv = document.getElementById('username_result');
+
+            if (username.length < 1) {
+                resultDiv.innerHTML = "";
+                return;
+            }
+
+            fetch('check_username.php?username=' + encodeURIComponent(username))
+                .then(response => response.text())
+                .then(data => {
+                    resultDiv.innerHTML = data;
+                });
+        }
+    </script>
 </head>
 <body>
     <a href="index.php">메인으로</a>
@@ -93,8 +111,8 @@ $mysqli->close();
 
     <form method="POST" action="">
         <label for="username">아이디:</label>
-        <input type="text" id="username" name="username" required>
-        <br>
+        <input type="text" id="username" name="username" required onblur="checkUsername()">
+        <div id="username_result"></div>
         <label for="nickname">닉네임:</label>
         <input type="text" id="nickname" name="nickname" required>
         <br>
@@ -108,4 +126,3 @@ $mysqli->close();
     </form>
 </body>
 </html>
-

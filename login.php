@@ -1,12 +1,5 @@
 <?php
 session_start();
-$mysqli = new mysqli("localhost", "root", "", "board");
-
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
-
-$errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -18,23 +11,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "아이디와 비밀번호를 입력해주세요.";
     } else {
         // 사용자 인증
+        $mysqli = new mysqli("localhost", "root", "", "board");
+
+        if ($mysqli->connect_error) {
+            die("Connection failed: " . $mysqli->connect_error);
+        }
+
         $stmt = $mysqli->prepare("SELECT id, password FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $stmt->bind_result($id, $hashed_password);
         $stmt->fetch();
         $stmt->close();
+        $mysqli->close();
 
         if ($id && password_verify($password, $hashed_password)) {
             // 세션에 사용자 정보 저장
             $_SESSION['id'] = $id;
             $_SESSION['username'] = $username;
-
-            // 세션 지속 시간 설정 (1시간)
-            $session_duration = 60;  // 1시간
-            ini_set('session.gc_maxlifetime', $session_duration);
-            session_set_cookie_params($session_duration);
-            session_regenerate_id(true);
 
             // "로그인 상태 유지" 체크박스가 선택된 경우
             if ($remember_me) {
@@ -52,8 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
-$mysqli->close();
 ?>
 
 <!DOCTYPE html>

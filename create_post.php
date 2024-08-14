@@ -1,4 +1,12 @@
 <?php
+session_start();
+
+// 사용자 인증 확인
+if (!isset($_SESSION['id'])) {
+    header('Location: login.php');
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'];
     $content = $_POST['content'];
@@ -7,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $mysqli = new mysqli("localhost", "root", "", "board");
 
-    if($mysqli->connect_error) {
+    if ($mysqli->connect_error) {
         die("Connection failed: " . $mysqli->connect_error);
     }
 
@@ -29,8 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 게시물 추가
-    $stmt = $mysqli->prepare("INSERT INTO posts (title, content, file_path) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $title, $content, $file_path);
+    $user_id = $_SESSION['id']; // 현재 로그인한 사용자의 ID
+    $stmt = $mysqli->prepare("INSERT INTO posts (title, content, file_path, user_id) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("sssi", $title, $content, $file_path, $user_id);
     $stmt->execute();
     $stmt->close();
     $mysqli->close();
@@ -45,17 +54,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <hr>
 <h1>새 글 쓰기</h1>
 <hr>
-<form method="POST" action="" enctype = "multipart/form-data">
+<form method="POST" action="" enctype="multipart/form-data">
     <label for="title">제목:</label>
     <input type="text" id="title" name="title" required>
     <br>
     <label for="content">내용:</label>
     <textarea id="content" name="content" required></textarea>
     <br>
-    <label for="content">파일 업로드:</label>
+    <label for="file">파일 업로드:</label>
     <input type="file" id="file" name="file">
     <br>
     <button type="submit">게시</button>
 </form>
-
-

@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 // 데이터베이스 연결
 $mysqli = new mysqli("localhost", "root", "", "board");
 
@@ -7,7 +9,7 @@ if ($mysqli->connect_error) {
 }
 
 // URL에서 게시물 ID 가져오기
-if (isset($_GET['id']) && !is_array($_GET['id'])){
+if (isset($_GET['id']) && !is_array($_GET['id'])) {
     $id = intval($_GET['id']);
 } else {
     echo "잘못된 요청입니다.";
@@ -15,10 +17,10 @@ if (isset($_GET['id']) && !is_array($_GET['id'])){
 }
 
 // SQL 쿼리로 해당 게시물 가져오기
-$stmt = $mysqli->prepare("SELECT title, content, file_path, created_at, updated_at FROM posts WHERE id = ?");
+$stmt = $mysqli->prepare("SELECT title, content, file_path, created_at, updated_at, user_id FROM posts WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
-$stmt->bind_result($title, $content, $file_path, $created_at, $updated_at);
+$stmt->bind_result($title, $content, $file_path, $created_at, $updated_at, $post_user_id);
 
 if (!$stmt->fetch()) {
     echo "게시물이 존재하지 않습니다.";
@@ -26,6 +28,15 @@ if (!$stmt->fetch()) {
 }
 
 $stmt->close();
+
+// 작성자 이름 가져오기
+$stmt = $mysqli->prepare("SELECT username FROM users WHERE id = ?");
+$stmt->bind_param("i", $post_user_id);
+$stmt->execute();
+$stmt->bind_result($author_username);
+$stmt->fetch();
+$stmt->close();
+
 $mysqli->close();
 
 $created_at = new DateTime($created_at);
@@ -35,29 +46,46 @@ $display_date = $created_at->format('Y. m. d H:i');
 if ($updated_at) {
     $display_date .= ' (수정일: ' . $updated_at->format('Y. m. d H:i') . ')';
 }
+
+$is_author = isset($_SESSION['id']) && $_SESSION['id'] === $post_user_id;
 ?>
 
-
-
-<a href="index.php">메인으로</a>
-<hr>
-<h1><?php echo htmlspecialchars($title); ?></h1>
-<p>게시일: <?php echo htmlspecialchars($display_date); ?></p>
-<a href="update_post.php?id=<?php echo $id; ?>">수정</a>
-<a href="delete_post.php?id=<?php echo $id; ?>" onclick="return confirmDeletion();">삭제</a>
-<hr>
-<br>
-<p><?php echo htmlspecialchars($content); ?></p>
-<br>
-<?php if ($file_path): ?>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시물 읽기</title>
+</head>
+<body>
+    <a href="index.php">메인으로</a>
     <hr>
-    <p>첨부 파일: <a href="<?php echo $file_path; ?>" target="_blank"><?php echo basename($file_path); ?></a></p>
-<?php endif; ?>
+    <h1><?php echo htmlspecialchars($title); ?></h1>
+    <p>게시일: <?php echo htmlspecialchars($display_date); ?></p>
+    <p>작성자: <?php echo htmlspecialchars($author_username ?: '작성자 정보 없음'); ?></p>
 
-<hr>
+    <?php if ($is_author): ?>
+        <a href="update_post.php?id=<?php echo $id; ?>">수정</a>
+        <a href="delete_post.php?id=<?php echo $id; ?>" onclick="return confirmDeletion();">삭제</a>
+    <?php endif; ?>
 
-<script>
-    function confirmDeletion() { 
-        return confirm("정말로 삭제하시겠습니까?");
-    }
-</script>
+    <hr>
+    <br>
+    <p><?php echo nl2br(htmlspecialchars($content)); ?></p>
+    <br>
+    <?php if ($file_path): ?>
+        <hr>
+        <p>첨부 파일: <a href="<?php echo htmlspecialchars($file_path); ?>" target="_blank"><?php echo htmlspecialchars(basename($file_path)); ?></a></p>
+    <?php else: ?>
+        <p>첨부 파일: 없음</p>
+    <?php endif; ?>
+
+    <hr>
+
+    <script>
+        function confirmDeletion() { 
+            return confirm("정말로 삭제하시겠습니까?");
+        }
+    </script>
+</body>
+</html>

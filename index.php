@@ -1,12 +1,13 @@
 <?php
 session_start();
 
-if(!isset($_SESSION['id']) && isset($_COOKIE['id']) && isset($_COOKIE['username'])){
+// 사용자 인증 확인
+if (!isset($_SESSION['id']) && isset($_COOKIE['id']) && isset($_COOKIE['username'])) {
     $_SESSION['id'] = $_COOKIE['id'];
     $_SESSION['username'] = $_COOKIE['username'];
 }
 
-if(!isset($_SESSION['id'])){
+if (!isset($_SESSION['id'])) {
     header('Location: login.php');
     exit();
 }
@@ -36,7 +37,11 @@ $total_stmt->close();
 $total_pages = ceil($total_posts / $post_per_page);
 
 // 게시물 가져오기
-$stmt = $mysqli->prepare("SELECT id, title, content, created_at, updated_at FROM posts ORDER BY created_at DESC LIMIT ?, ?");
+$stmt = $mysqli->prepare("SELECT posts.id, posts.title, posts.content, posts.created_at, posts.updated_at, posts.file_path, users.username 
+                           FROM posts 
+                           LEFT JOIN users ON posts.user_id = users.id 
+                           ORDER BY posts.created_at DESC 
+                           LIMIT ?, ?");
 $stmt->bind_param("ii", $offset, $post_per_page);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -44,11 +49,7 @@ $stmt->close();
 $mysqli->close();
 
 function truncateContent($content, $maxLength = 100) {
-    if (strlen($content) > $maxLength) {
-        return substr($content, 0, $maxLength) . '...';
-    } else {
-        return $content;
-    }
+    return strlen($content) > $maxLength ? substr($content, 0, $maxLength) . '...' : $content;
 }
 ?>
 
@@ -68,20 +69,30 @@ function truncateContent($content, $maxLength = 100) {
         <button type="submit">검색</button>
     </form>
 
-    <a href="create_post.php">새 글 쓰기</a>
-    <a href="logout.php">로그아웃</a>
+    <nav>
+        <a href="create_post.php">새 글 쓰기</a> |
+        <a href="user_posts.php">내가 쓴 글</a> |
+        <a href="update_profile.php">프로필 수정</a> |
+        <a href="logout.php">로그아웃</a>
+    </nav>
 
     <hr>
 
     <?php if ($result->num_rows > 0): ?>
         <?php while($row = $result->fetch_assoc()): ?>
-            <h2><a href="read_post.php?id=<?php echo $row['id']; ?>"><?php echo htmlspecialchars($row['title']); ?></a></h2>
+            <h2><a href="read_post.php?id=<?php echo htmlspecialchars($row['id']); ?>"><?php echo htmlspecialchars($row['title']); ?></a></h2>
             <p>게시일: <?php echo date('Y. m. d', strtotime($row['created_at'])); ?>
                 <?php if ($row['updated_at']): ?>
                     (수정일: <?php echo date('Y. m. d', strtotime($row['updated_at'])); ?>)
                 <?php endif; ?>
             </p>
+            <p>작성자: <?php echo htmlspecialchars($row['username'] ?? '작성자 정보 없음'); ?></p>
             <p><?php echo htmlspecialchars(truncateContent($row['content'])); ?></p>
+            <?php if ($row['file_path']): ?>
+                <p>첨부파일: <?php echo htmlspecialchars(basename($row['file_path'])); ?></p>
+            <?php else: ?>
+                <p>첨부파일: 없음</p>
+            <?php endif; ?>
             <hr>
         <?php endwhile; ?>
     <?php else: ?>
