@@ -1,12 +1,6 @@
 <?php
-session_start();
-
-// 데이터베이스 연결
-$mysqli = new mysqli("localhost", "user", "user", "board");
-
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
+require 'config.php';
+require 'db.php';
 
 // URL에서 게시물 ID 가져오기
 if (isset($_GET['id']) && !is_array($_GET['id'])) {

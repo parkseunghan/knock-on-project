@@ -1,5 +1,6 @@
 <?php
-session_start();
+require 'config.php';
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 세션과 쿠키 삭제

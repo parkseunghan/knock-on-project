@@ -1,9 +1,6 @@
 <?php
-$mysqli = new mysqli("localhost", "user", "user", "board");
-
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
+require 'config.php';
+require 'db.php';
 
 $query = isset($_GET['query']) ? $mysqli->real_escape_string($_GET['query']) : '';
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;

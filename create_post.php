@@ -1,16 +1,14 @@
 <?php
-session_start();
+require 'config.php';
+require 'db.php';
+
 
 if (!isset($_SESSION['id'])) {
     header('Location: login.php');
     exit();
 }
 
-$mysqli = new mysqli("localhost", "user", "user", "board");
 
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
 
 $title = '';
 $content = '';

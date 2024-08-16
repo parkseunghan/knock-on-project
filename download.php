@@ -1,5 +1,6 @@
 <?php
-session_start();
+require 'config.php';
+
 
 // 사용자가 로그인했는지 확인
 if (!isset($_SESSION['id'])) {

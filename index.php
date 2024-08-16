@@ -1,5 +1,8 @@
 <?php
-session_start();
+require 'config.php';
+require 'db.php';
+
+
 
 // 사용자 인증 확인
 if (!isset($_SESSION['id']) && isset($_COOKIE['id']) && isset($_COOKIE['username'])) {
@@ -12,11 +15,7 @@ if (!isset($_SESSION['id'])) {
     exit();
 }
 
-$mysqli = new mysqli("localhost", "user", "user", "board");
 
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
 
 // 페이지당 게시물 수
 $post_per_page = 7;

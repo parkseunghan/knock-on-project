@@ -1,9 +1,6 @@
 <?php
-session_start();
-$mysqli = new mysqli("localhost", "user", "user", "board");
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
+require 'config.php';
+require 'db.php';
 
 // 로그인 여부 확인
 if (!isset($_SESSION['id'])) {

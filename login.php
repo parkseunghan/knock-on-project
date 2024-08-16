@@ -1,5 +1,7 @@
 <?php
-session_start();
+require 'config.php';
+require 'db.php';
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -11,10 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "아이디와 비밀번호를 입력해주세요.";
     } else {
         // 사용자 인증
-	$mysqli = new mysqli("localhost", "user", "user", "board");
-        if ($mysqli->connect_error) {
-            die("Connection failed: " . $mysqli->connect_error);
-        }
+	
+   
 
         $stmt = $mysqli->prepare("SELECT id, password FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
