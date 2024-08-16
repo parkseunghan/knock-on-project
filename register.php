@@ -1,12 +1,12 @@
 <?php
-$mysqli = new mysqli("localhost", "root", "", "board");
+$mysqli = new mysqli("localhost", "user", "user", "board");
 
 if ($mysqli->connect_error) {
     die("Connection failed: " . $mysqli->connect_error);
 }
 
 $errors = [];
-$username_exists = false;  // 아이디 중복 상태를 저장하는 변수
+$username_exists = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -14,14 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
     $password_confirm = $_POST['password_confirm'];
 
-    // 필수 필드 확인
     if (empty($username) || empty($nickname) || empty($password) || empty($password_confirm)) {
         $errors[] = "모든 필드를 입력해주세요.";
     }
 
-    // 아이디 유효성 검사 (영문, 숫자 혼합, 20자 이하, 공백 불허)
-    if (!preg_match('/^[a-zA-Z0-9]{1,20}$/', $username)) {
-        $errors[] = "아이디는 영문과 숫자를 혼합하여 20자 이내로 입력해야 하며, 공백을 포함할 수 없습니다.";
+    // 아이디 유효성 검사 (영문과 숫자의 조합, 20자 이하, 공백 불허)
+    if (!preg_match('/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{1,20}$/', $username)) {
+        $errors[] = "아이디는 영문자와 숫자를 혼합하여 20자 이내로 입력해야 하며, 공백을 포함할 수 없습니다.";
     }
 
     // 닉네임 유효성 검사 (공백 불허)
@@ -49,13 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->num_rows > 0) {
             $errors[] = "이미 존재하는 아이디입니다.";
         } else {
-            // 비밀번호 해시 처리
             $password_hashed = password_hash($password, PASSWORD_DEFAULT);
-
-            // 새로운 사용자 등록
             $stmt = $mysqli->prepare("INSERT INTO users (username, nickname, password) VALUES (?, ?, ?)");
             $stmt->bind_param("sss", $username, $nickname, $password_hashed);
-
             if ($stmt->execute()) {
                 echo "<script>alert('회원가입 성공!'); window.location.href = 'login.php';</script>";
                 exit();
@@ -78,29 +73,97 @@ $mysqli->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회원가입</title>
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById('username').addEventListener('input', checkUsername);
+            document.getElementById('nickname').addEventListener('input', validateNickname);
+            document.getElementById('password').addEventListener('input', validatePassword);
+            document.getElementById('password_confirm').addEventListener('input', validatePasswordConfirm);
+        });
+
         function checkUsername() {
             const username = document.getElementById('username').value;
             const resultDiv = document.getElementById('username_result');
+            const usernameMessage = document.getElementById('username_message');
 
             if (username.length < 1) {
-                resultDiv.innerHTML = "";
+                usernameMessage.textContent = "";
                 return;
             }
 
-            fetch('check_username.php?username=' + encodeURIComponent(username))
-                .then(response => response.text())
-                .then(data => {
-                    resultDiv.innerHTML = data;
-                });
+            // 아이디 유효성 검사
+            if (!/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{1,20}$/.test(username)) {
+                usernameMessage.textContent = "아이디는 영문자와 숫자를 혼합하여 20자 이내로 입력해야 하며, 공백을 포함할 수 없습니다.";
+                usernameMessage.style.color = "red";
+                resultDiv.innerHTML = "";
+            } else {
+                usernameMessage.textContent = "올바른 형식입니다.";
+                usernameMessage.style.color = "green";
+
+                fetch('check_username.php?username=' + encodeURIComponent(username))
+                    .then(response => response.text())
+                    .then(data => {
+                        resultDiv.innerHTML = data;
+                    });
+            }
+        }
+
+        function validateNickname() {
+            const nickname = document.getElementById('nickname').value;
+            const nicknameMessage = document.getElementById('nickname_message');
+
+            if (/^\S+$/.test(nickname)) {
+                nicknameMessage.textContent = "올바른 형식입니다.";
+                nicknameMessage.style.color = "green";
+            } else {
+                nicknameMessage.textContent = "닉네임은 공백을 포함할 수 없습니다.";
+                nicknameMessage.style.color = "red";
+            }
+        }
+
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            const passwordMessage = document.getElementById('password_message');
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{10,}$/;
+
+            if (passwordRegex.test(password)) {
+                passwordMessage.textContent = "올바른 형식입니다.";
+                passwordMessage.style.color = "green";
+            } else {
+                passwordMessage.textContent = "비밀번호는 영문, 숫자, 특수문자를 포함하여 10자 이상이어야 하며, 공백을 포함할 수 없습니다.";
+                passwordMessage.style.color = "red";
+            }
+        }
+
+        function validatePasswordConfirm() {
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('password_confirm').value;
+            const passwordConfirmMessage = document.getElementById('password_confirm_message');
+
+            if (password === passwordConfirm) {
+                passwordConfirmMessage.textContent = "비밀번호가 일치합니다.";
+                passwordConfirmMessage.style.color = "green";
+            } else {
+                passwordConfirmMessage.textContent = "비밀번호와 비밀번호 확인이 일치하지 않습니다.";
+                passwordConfirmMessage.style.color = "red";
+            }
+        }
+
+        function validateForm() {
+            checkUsername();
+            validateNickname();
+            validatePassword();
+            validatePasswordConfirm();
+
+            return document.querySelectorAll("div[style='color: red;']").length === 0;
         }
     </script>
 </head>
 <body>
     <a href="index.php">메인으로</a>
     <hr>
-    
+
     <h1>회원가입</h1>
-    
+
     <?php if (!empty($errors)): ?>
         <ul>
             <?php foreach ($errors as $error): ?>
@@ -109,20 +172,30 @@ $mysqli->close();
         </ul>
     <?php endif; ?>
 
-    <form method="POST" action="">
+    <form method="POST" action="" onsubmit="return validateForm()">
         <label for="username">아이디:</label>
-        <input type="text" id="username" name="username" required onblur="checkUsername()">
+        <input type="text" id="username" name="username" required>
         <div id="username_result"></div>
+        <div id="username_message"></div>
+        <br>
+
         <label for="nickname">닉네임:</label>
         <input type="text" id="nickname" name="nickname" required>
+        <div id="nickname_message"></div>
         <br>
+
         <label for="password">비밀번호:</label>
         <input type="password" id="password" name="password" required>
+        <div id="password_message"></div>
         <br>
+
         <label for="password_confirm">비밀번호 확인:</label>
         <input type="password" id="password_confirm" name="password_confirm" required>
+        <div id="password_confirm_message"></div>
         <br>
+
         <button type="submit">회원가입</button>
     </form>
 </body>
 </html>
+

@@ -2,7 +2,7 @@
 session_start();
 
 // 데이터베이스 연결
-$mysqli = new mysqli("localhost", "root", "", "board");
+$mysqli = new mysqli("localhost", "user", "user", "board");
 
 if ($mysqli->connect_error) {
     die("Connection failed: " . $mysqli->connect_error);
