@@ -2,6 +2,8 @@
 require_once 'init.php';
 
 
+
+
 $errors = [];
 $username_exists = false;
 
@@ -60,6 +62,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['check_username'])) {
+    $username = trim($_POST['check_username']);
+    $stmt = $mysqli->prepare("SELECT id FROM users WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        echo json_encode(['exists' => true]);
+    } else {
+        echo json_encode(['exists' => false]);
+    }
+
+    $stmt->close();
+    $mysqli->close();
+    exit();
+}
+
 $mysqli->close();
 ?>
 
@@ -93,14 +114,27 @@ $mysqli->close();
                 usernameMessage.style.color = "red";
                 resultDiv.innerHTML = "";
             } else {
-                usernameMessage.textContent = "올바른 형식입니다.";
-                usernameMessage.style.color = "green";
-
-                fetch('check_username.php?username=' + encodeURIComponent(username))
-                    .then(response => response.text())
-                    .then(data => {
-                        resultDiv.innerHTML = data;
-                    });
+                // 아이디 중복 검사
+                fetch('register.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `check_username=${encodeURIComponent(username)}`,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        usernameMessage.textContent = "이미 존재하는 아이디입니다.";
+                        usernameMessage.style.color = "red";
+                    } else {
+                        usernameMessage.textContent = "사용 가능한 아이디입니다.";
+                        usernameMessage.style.color = "green";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
             }
         }
 
@@ -195,4 +229,3 @@ $mysqli->close();
     </form>
 </body>
 </html>
-
