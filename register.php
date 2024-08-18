@@ -1,13 +1,9 @@
 <?php
 require_once 'init.php';
 
-
-
-
 $errors = [];
-$username_exists = false;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['check_username'])) {
     $username = trim($_POST['username']);
     $nickname = trim($_POST['nickname']);
     $password = $_POST['password'];
@@ -37,8 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "비밀번호와 비밀번호 확인이 일치하지 않습니다.";
     }
 
-    // 중복 사용자 검사
-    if (empty($errors) && !$username_exists) {
+    if (empty($errors)) {
         $stmt = $mysqli->prepare("SELECT id FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
@@ -50,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $password_hashed = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $mysqli->prepare("INSERT INTO users (username, nickname, password) VALUES (?, ?, ?)");
             $stmt->bind_param("sss", $username, $nickname, $password_hashed);
+
             if ($stmt->execute()) {
                 echo "<script>alert('회원가입 성공!'); window.location.href = 'login.php';</script>";
                 exit();
@@ -60,8 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt->close();
     }
-}
 
+    $mysqli->close();
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['check_username'])) {
     $username = trim($_POST['check_username']);
@@ -80,10 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['check_username'])) {
     $mysqli->close();
     exit();
 }
-
-$mysqli->close();
 ?>
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -98,9 +93,8 @@ $mysqli->close();
             document.getElementById('password_confirm').addEventListener('input', validatePasswordConfirm);
         });
 
-        function checkUsername() {
+        async function checkUsername() {
             const username = document.getElementById('username').value;
-            const resultDiv = document.getElementById('username_result');
             const usernameMessage = document.getElementById('username_message');
 
             if (username.length < 1) {
@@ -112,18 +106,17 @@ $mysqli->close();
             if (!/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{1,20}$/.test(username)) {
                 usernameMessage.textContent = "아이디는 영문자와 숫자를 혼합하여 20자 이내로 입력해야 하며, 공백을 포함할 수 없습니다.";
                 usernameMessage.style.color = "red";
-                resultDiv.innerHTML = "";
             } else {
-                // 아이디 중복 검사
-                fetch('register.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `check_username=${encodeURIComponent(username)}`,
-                })
-                .then(response => response.json())
-                .then(data => {
+                try {
+                    const response = await fetch('register.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `check_username=${encodeURIComponent(username)}`,
+                    });
+                    const data = await response.json();
+
                     if (data.exists) {
                         usernameMessage.textContent = "이미 존재하는 아이디입니다.";
                         usernameMessage.style.color = "red";
@@ -131,10 +124,9 @@ $mysqli->close();
                         usernameMessage.textContent = "사용 가능한 아이디입니다.";
                         usernameMessage.style.color = "green";
                     }
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('Error:', error);
-                });
+                }
             }
         }
 
@@ -206,7 +198,6 @@ $mysqli->close();
     <form method="POST" action="" onsubmit="return validateForm()">
         <label for="username">아이디:</label>
         <input type="text" id="username" name="username" required>
-        <div id="username_result"></div>
         <div id="username_message"></div>
         <br>
 
