@@ -1,6 +1,5 @@
 <?php
-require 'config.php';
-require 'db.php';
+require_once 'init.php';
 
 $query = isset($_GET['query']) ? $mysqli->real_escape_string($_GET['query']) : '';
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;

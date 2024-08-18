@@ -1,6 +1,5 @@
 <?php
-require 'config.php';
-require 'db.php';
+require_once 'init.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

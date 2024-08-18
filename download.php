@@ -1,5 +1,5 @@
 <?php
-require 'config.php';
+require_once 'init.php';
 
 
 // 사용자가 로그인했는지 확인

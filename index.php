@@ -1,6 +1,5 @@
 <?php
-require 'config.php';
-require 'db.php';
+require_once 'init.php';
 
 
 

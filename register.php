@@ -1,5 +1,6 @@
 <?php
-require 'db.php';
+require_once 'init.php';
+
 
 $errors = [];
 $username_exists = false;
