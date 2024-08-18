@@ -6,11 +6,9 @@ if (!isset($_SESSION['id'])) {
     exit();
 }
 
-
-
-if (isset($_GET['id']) && !is_array($_GET['id'])) {
-    $id = intval($_GET['id']);
-} else {
+// 게시물 ID 검증
+$id = isset($_GET['id']) && !is_array($_GET['id']) ? intval($_GET['id']) : null;
+if ($id === null) {
     echo "잘못된 요청입니다.";
     exit();
 }
@@ -25,7 +23,6 @@ if (!$stmt->fetch()) {
     echo "게시물이 존재하지 않습니다.";
     exit();
 }
-
 $stmt->close();
 
 // 로그인한 사용자가 게시물의 작성자인지 확인
@@ -39,13 +36,13 @@ $error_message = '';
 $file_error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['title']) && isset($_POST['content'])) {
+    if (!empty($_POST['title']) && !empty($_POST['content'])) {
         $title = trim($_POST['title']);
         $content = trim($_POST['content']);
         $upload_dir = __DIR__ . '/uploads/';
 
         // 파일 업로드 처리
-        if (isset($_FILES['file'])) {
+        if (isset($_FILES['file']) && $_FILES['file']['error'] !== UPLOAD_ERR_NO_FILE) {
             if ($_FILES['file']['error'] === UPLOAD_ERR_OK) {
                 $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'c', 'sql'];
                 $file_ext = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
@@ -73,12 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $file_error_message = "파일 업로드 실패!";
                     }
                 }
-            } elseif ($_FILES['file']['error'] !== UPLOAD_ERR_NO_FILE) {
+            } else {
                 $file_error_message = "파일 업로드 중 오류가 발생했습니다.";
             }
         }
 
-        if (empty($error_message) && empty($file_error_message)) {
+        if (empty($file_error_message)) {
             // 게시물 업데이트
             $stmt = $mysqli->prepare("UPDATE posts SET title = ?, content = ?, file_path = ? WHERE id = ?");
             $stmt->bind_param("sssi", $title, $content, $file_path, $id);
@@ -93,10 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->close();
         }
     } else {
-        $error_message = "제목 또는 내용이 누락되었거나, 파일 용량을 초과했습니다. (최대 5MB)";
+        $error_message = "파일 업로드 중 오류가 발생했습니다. (파일 용량 초과 or 허용되지 않는 파일 형식)";
     }
 }
 
+// 게시물 데이터 재조회
 $stmt = $mysqli->prepare("SELECT title, content, file_path FROM posts WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -123,7 +121,7 @@ $mysqli->close();
         <label for="content">내용:</label>
         <textarea id="content" name="content" required><?php echo htmlspecialchars($post['content']); ?></textarea>
         <br>
-        <label for="file">파일 업로드:</label>
+        <label for="file">파일 업로드(최대 5MB):</label>
         <input type="file" id="file" name="file">
         <br>
         <?php if ($error_message): ?>
@@ -136,4 +134,3 @@ $mysqli->close();
     </form>
 </body>
 </html>
-
