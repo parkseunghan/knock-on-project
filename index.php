@@ -1,8 +1,6 @@
 <?php
 require_once 'init.php';
 
-
-
 // 사용자 인증 확인
 if (!isset($_SESSION['id']) && isset($_COOKIE['id']) && isset($_COOKIE['username'])) {
     $_SESSION['id'] = $_COOKIE['id'];
@@ -14,18 +12,19 @@ if (!isset($_SESSION['id'])) {
     exit();
 }
 
-
-
 // 페이지당 게시물 수
 $post_per_page = 7;
 
 // 현재 페이지
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$page = ($page > 0) ? $page : 1; // 페이지가 1보다 작은 경우 1로 설정
+$page = max(1, $page); // 페이지가 1보다 작은 경우 1로 설정
 $offset = ($page - 1) * $post_per_page;
 
 // 총 게시물 수 계산
 $total_stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts");
+if (!$total_stmt) {
+    die("쿼리 준비 실패: " . $mysqli->error);
+}
 $total_stmt->execute();
 $total_stmt->bind_result($total_posts);
 $total_stmt->fetch();
@@ -40,6 +39,9 @@ $stmt = $mysqli->prepare("SELECT posts.id, posts.title, posts.content, posts.cre
                            LEFT JOIN users ON posts.user_id = users.id 
                            ORDER BY posts.created_at DESC 
                            LIMIT ?, ?");
+if (!$stmt) {
+    die("쿼리 준비 실패: " . $mysqli->error);
+}
 $stmt->bind_param("ii", $offset, $post_per_page);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -98,7 +100,7 @@ function truncateContent($content, $maxLength = 100) {
     <?php endif; ?>
 
     <!-- 페이지 네비게이션 -->
-    <nav aria-label="Page navigation">
+    <nav>
         <ul>
             <?php if ($page > 1): ?>
                 <li><a href="?page=<?php echo $page - 1; ?>">이전</a></li>
@@ -106,7 +108,7 @@ function truncateContent($content, $maxLength = 100) {
 
             <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                 <li>
-                    <a href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                    <a href="?page=<?php echo $i; ?>" <?php if ($i === $page) echo 'style="font-weight:bold;"'; ?>><?php echo $i; ?></a>
                 </li>
             <?php endfor; ?>
 
