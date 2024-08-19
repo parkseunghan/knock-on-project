@@ -107,39 +107,94 @@ function deletePost($mysqli, $postId, $userId) {
     return ['success' => true, 'message' => '게시물이 삭제되었습니다.'];
 }
 
-// 총 게시물 수 - index
-function getTotalPosts($mysqli) {
-    $total_stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts");
-    if (!$total_stmt) {
-        die("쿼리 준비 실패: " . $mysqli->error);
+// 총 게시물 수 - index, search
+function getTotalPosts($mysqli, $query) {
+    if ($query) {
+        $stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts WHERE title LIKE ? OR content LIKE ?");
+        $search_term = '%' . $query . '%';
+        $stmt->bind_param("ss", $search_term, $search_term);
+    } else {
+        $stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts");
     }
-    $total_stmt->execute();
-    $total_stmt->bind_result($total_posts);
-    $total_stmt->fetch();
-    $total_stmt->close();
+    $stmt->execute();
+    $stmt->bind_result($total_posts);
+    $stmt->fetch();
+    $stmt->close();
+    
     return $total_posts;
 }
 
-// 게시물 가져오기 - index
-function getPosts($mysqli, $offset, $post_per_page) {
+// 게시물 가져오기 - index, search
+function getPosts($mysqli, $offset, $post_per_page, $query) {
+    if ($query) {
+        $stmt = $mysqli->prepare("SELECT id, title, content, created_at, updated_at FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC LIMIT ?, ?");
+        $search_term = '%' . $query . '%';
+        $stmt->bind_param("ssii", $search_term, $search_term, $offset, $post_per_page);
+    } else {
     $stmt = $mysqli->prepare("SELECT posts.id, posts.title, posts.content, posts.created_at, posts.updated_at, posts.file_path, users.username 
                                FROM posts 
                                LEFT JOIN users ON posts.user_id = users.id 
                                ORDER BY posts.created_at DESC 
                                LIMIT ?, ?");
-    if (!$stmt) {
-        die("쿼리 준비 실패: " . $mysqli->error);
-    }
     $stmt->bind_param("ii", $offset, $post_per_page);
+    }
     $stmt->execute();
     $result = $stmt->get_result();
     $stmt->close();
     return $result;
 }
 
-// 게시물 내용 미리보기 - index
+// 게시물 내용 미리보기 - index, search, user_posts
 function truncateContent($content, $maxLength = MAX_LENGTH) {
     return strlen($content) > $maxLength ? substr($content, 0, $maxLength) . '...' : $content;
 }
 
+// 게시물 가져오기 - read_post
+function getPostById($mysqli, $id) {
+    $stmt = $mysqli->prepare("SELECT title, content, file_path, created_at, updated_at, user_id FROM posts WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->bind_result($title, $content, $file_path, $created_at, $updated_at, $post_user_id);
+
+    if (!$stmt->fetch()) {
+        return null; // 게시물이 존재하지 않으면 null 반환
+    }
+
+    $stmt->close();
+    return [
+        'title' => $title,
+        'content' => $content,
+        'file_path' => $file_path,
+        'created_at' => $created_at,
+        'updated_at' => $updated_at,
+        'user_id' => $post_user_id
+    ];
+}
+
+// 작성자 이름 가져오기 - read_post
+function getAuthorUsername($mysqli, $post_user_id) {
+    $stmt = $mysqli->prepare("SELECT username FROM users WHERE id = ?");
+    $stmt->bind_param("i", $post_user_id);
+    $stmt->execute();
+    $stmt->bind_result($author_username);
+    $stmt->fetch();
+    $stmt->close();
+    return $author_username;
+}
+
+// 사용자가 작성한 게시물을 가져오기
+function getUserPosts($mysqli, $user_id) {
+    $stmt = $mysqli->prepare("
+        SELECT id, title, content, created_at, updated_at 
+        FROM posts 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC
+    ");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+    
+    return $result;
+}
 ?>

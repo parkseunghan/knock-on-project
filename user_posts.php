@@ -1,6 +1,5 @@
 <?php
-require_once 'init.php';
-
+require_once 'init.php'; // init.php에 이미 functions.php가 포함되어 있다고 가정
 
 // 로그인 여부 확인
 if (!isset($_SESSION['id'])) {
@@ -12,22 +11,9 @@ if (!isset($_SESSION['id'])) {
 $user_id = $_SESSION['id'];
 
 // 현재 사용자가 작성한 게시물 가져오기
-$stmt = $mysqli->prepare("
-    SELECT id, title, content, created_at, updated_at 
-    FROM posts 
-    WHERE user_id = ? 
-    ORDER BY created_at DESC
-");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$stmt->close();
-$mysqli->close();
+$result = getUserPosts($mysqli, $user_id);
 
-// 내용 자르기 함수
-function truncateContent($content, $maxLength = 100) {
-    return strlen($content) > $maxLength ? substr($content, 0, $maxLength) . '...' : $content;
-}
+$mysqli->close();
 ?>
 
 <!DOCTYPE html>

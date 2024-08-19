@@ -1,53 +1,23 @@
 <?php
-require_once 'init.php';
+require_once 'init.php'; // init.php에 이미 functions.php가 포함되어 있다고 가정
 
 $query = isset($_GET['query']) ? $mysqli->real_escape_string($_GET['query']) : '';
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
 $page = ($page > 0) ? $page : 1; // 페이지가 1보다 작은 경우 1로 설정
 
 // 페이지당 게시물 수
-$post_per_page = 7;
+$post_per_page = POST_PER_PAGE;
 $offset = ($page - 1) * $post_per_page;
 
-if ($query) {
-    // 검색어가 있는 경우: 총 게시물 수 계산
-    $total_stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts WHERE title LIKE ? OR content LIKE ?");
-    $search_term = '%' . $query . '%';
-    $total_stmt->bind_param("ss", $search_term, $search_term);
-    $total_stmt->execute();
-    $total_stmt->bind_result($total_posts);
-    $total_stmt->fetch();
-    $total_stmt->close();
+// 총 게시물 수 계산
+$total_posts = getTotalPosts($mysqli, $query);
 
-    // 검색 결과 가져오기
-    $stmt = $mysqli->prepare("SELECT id, title, content, created_at, updated_at FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC LIMIT ?, ?");
-    $stmt->bind_param("ssii", $search_term, $search_term, $offset, $post_per_page);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-} else {
-    // 검색어가 없는 경우: 총 게시물 수 계산
-    $total_stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts");
-    $total_stmt->execute();
-    $total_stmt->bind_result($total_posts);
-    $total_stmt->fetch();
-    $total_stmt->close();
-
-    // 모든 게시물 가져오기
-    $stmt = $mysqli->prepare("SELECT id, title, content, created_at, updated_at FROM posts ORDER BY created_at DESC LIMIT ?, ?");
-    $stmt->bind_param("ii", $offset, $post_per_page);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-}
+// 검색 결과 가져오기
+$result = getPosts($mysqli, $offset, $post_per_page, $query);
 
 $mysqli->close();
 
 $total_pages = ceil($total_posts / $post_per_page);
-
-function truncateContent($content, $maxLength = 100) {
-    return strlen($content) > $maxLength ? substr($content, 0, $maxLength) . '...' : $content;
-}
 ?>
 
 <!DOCTYPE html>

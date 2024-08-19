@@ -9,38 +9,26 @@ if (isset($_GET['id']) && !is_array($_GET['id'])) {
     exit();
 }
 
-// SQL 쿼리로 해당 게시물 가져오기
-$stmt = $mysqli->prepare("SELECT title, content, file_path, created_at, updated_at, user_id FROM posts WHERE id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$stmt->bind_result($title, $content, $file_path, $created_at, $updated_at, $post_user_id);
-
-if (!$stmt->fetch()) {
+// 게시물 가져오기
+$post = getPostById($mysqli, $id);
+if (!$post) {
     echo "게시물이 존재하지 않습니다.";
     exit();
 }
 
-$stmt->close();
-
 // 작성자 이름 가져오기
-$stmt = $mysqli->prepare("SELECT username FROM users WHERE id = ?");
-$stmt->bind_param("i", $post_user_id);
-$stmt->execute();
-$stmt->bind_result($author_username);
-$stmt->fetch();
-$stmt->close();
-
+$author_username = getAuthorUsername($mysqli, $post['user_id']);
 $mysqli->close();
 
-$created_at = new DateTime($created_at);
-$updated_at = $updated_at ? new DateTime($updated_at) : null;
+$created_at = new DateTime($post['created_at']);
+$updated_at = $post['updated_at'] ? new DateTime($post['updated_at']) : null;
 $display_date = $created_at->format('Y. m. d H:i');
 
 if ($updated_at) {
     $display_date .= ' (수정일: ' . $updated_at->format('Y. m. d H:i') . ')';
 }
 
-$is_author = isset($_SESSION['id']) && $_SESSION['id'] === $post_user_id;
+$is_author = isset($_SESSION['id']) && $_SESSION['id'] === $post['user_id'];
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +41,7 @@ $is_author = isset($_SESSION['id']) && $_SESSION['id'] === $post_user_id;
 <body>
     <a href="index.php">메인으로</a>
     <hr>
-    <h1><?php echo htmlspecialchars($title); ?></h1>
+    <h1><?php echo htmlspecialchars($post['title']); ?></h1>
     <p>게시일: <?php echo htmlspecialchars($display_date); ?></p>
     <p>작성자: <?php echo htmlspecialchars($author_username ?: '작성자 정보 없음'); ?></p>
 
@@ -64,14 +52,14 @@ $is_author = isset($_SESSION['id']) && $_SESSION['id'] === $post_user_id;
 
     <hr>
     <br>
-    <p><?php echo nl2br(htmlspecialchars($content)); ?></p>
+    <p><?php echo nl2br(htmlspecialchars($post['content'])); ?></p>
     <br>
   
-
-    <?php if ($file_path): ?>
+    <?php if ($post['file_path']): ?>
     <hr>
-    <p>첨부 파일: <a href="download.php?file=<?php echo urlencode($file_path); ?>"><?php echo htmlspecialchars(basename($file_path)); ?></a></p>
+    <p>첨부 파일: <a href="download.php?file=<?php echo urlencode($post['file_path']); ?>"><?php echo htmlspecialchars(basename($post['file_path'])); ?></a></p>
     <?php else: ?>
+    <hr>
     <p>첨부 파일: 없음</p>
     <?php endif; ?>
 

@@ -20,13 +20,13 @@ $page = max(1, $page); // 페이지가 1보다 작은 경우 1로 설정
 $offset = ($page - 1) * $post_per_page;
 
 // 총 게시물 수 계산
-$total_posts = getTotalPosts($mysqli);
+$total_posts = getTotalPosts($mysqli, NULL);
 
 // 총 페이지 수 계산
 $total_pages = ceil($total_posts / $post_per_page);
 
 // 게시물 가져오기
-$result = getPosts($mysqli, $offset, $post_per_page);
+$result = getPosts($mysqli, $offset, $post_per_page, NULL);
 $mysqli->close();
 ?>
 
@@ -57,23 +57,41 @@ $mysqli->close();
 
     <?php if ($result->num_rows > 0): ?>
         <?php while($row = $result->fetch_assoc()): ?>
-            <h2><a href="read_post.php?id=<?php echo htmlspecialchars($row['id']); ?>"><?php echo htmlspecialchars($row['title']); ?></a></h2>
+            <h2>
+                <a href="read_post.php?id=<?php echo htmlspecialchars($row['id']); ?>">
+                    <?php echo htmlspecialchars($row['title']); ?>
+                </a>
+            </h2>
+            
             <p>게시일: <?php echo date('Y. m. d', strtotime($row['created_at'])); ?>
+
                 <?php if ($row['updated_at']): ?>
+
                     (수정일: <?php echo date('Y. m. d', strtotime($row['updated_at'])); ?>)
+
                 <?php endif; ?>
             </p>
+
             <p>작성자: <?php echo htmlspecialchars($row['username'] ?? '작성자 정보 없음'); ?></p>
+
             <p><?php echo htmlspecialchars(truncateContent($row['content'])); ?></p>
+
             <?php if ($row['file_path']): ?>
                 <p>첨부파일: <?php echo htmlspecialchars(basename($row['file_path'])); ?></p>
+
             <?php else: ?>
+
                 <p>첨부파일: 없음</p>
+
             <?php endif; ?>
+
             <hr>
         <?php endwhile; ?>
+
     <?php else: ?>
+
         <p>게시물이 없습니다.</p>
+
     <?php endif; ?>
 
     <!-- 페이지 네비게이션 -->
