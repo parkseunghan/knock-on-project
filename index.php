@@ -12,8 +12,7 @@ if (!isset($_SESSION['id'])) {
     exit();
 }
 
-// 페이지당 게시물 수
-$post_per_page = 7;
+$post_per_page = POST_PER_PAGE;
 
 // 현재 페이지
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
@@ -21,36 +20,14 @@ $page = max(1, $page); // 페이지가 1보다 작은 경우 1로 설정
 $offset = ($page - 1) * $post_per_page;
 
 // 총 게시물 수 계산
-$total_stmt = $mysqli->prepare("SELECT COUNT(*) FROM posts");
-if (!$total_stmt) {
-    die("쿼리 준비 실패: " . $mysqli->error);
-}
-$total_stmt->execute();
-$total_stmt->bind_result($total_posts);
-$total_stmt->fetch();
-$total_stmt->close();
+$total_posts = getTotalPosts($mysqli);
 
 // 총 페이지 수 계산
 $total_pages = ceil($total_posts / $post_per_page);
 
 // 게시물 가져오기
-$stmt = $mysqli->prepare("SELECT posts.id, posts.title, posts.content, posts.created_at, posts.updated_at, posts.file_path, users.username 
-                           FROM posts 
-                           LEFT JOIN users ON posts.user_id = users.id 
-                           ORDER BY posts.created_at DESC 
-                           LIMIT ?, ?");
-if (!$stmt) {
-    die("쿼리 준비 실패: " . $mysqli->error);
-}
-$stmt->bind_param("ii", $offset, $post_per_page);
-$stmt->execute();
-$result = $stmt->get_result();
-$stmt->close();
+$result = getPosts($mysqli, $offset, $post_per_page);
 $mysqli->close();
-
-function truncateContent($content, $maxLength = 100) {
-    return strlen($content) > $maxLength ? substr($content, 0, $maxLength) . '...' : $content;
-}
 ?>
 
 <!DOCTYPE html>

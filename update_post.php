@@ -14,24 +14,19 @@ if ($id === null) {
 }
 
 // 게시물 데이터 가져오기
-$stmt = $mysqli->prepare("SELECT title, content, file_path, user_id FROM posts WHERE id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$stmt->bind_result($title, $content, $existing_file_path, $post_user_id);
-
-if (!$stmt->fetch()) {
+$post = fetchPost($id);
+if (!$post) {
     echo "게시물이 존재하지 않습니다.";
     exit();
 }
-$stmt->close();
 
 // 로그인한 사용자가 게시물의 작성자인지 확인
-if ($_SESSION['id'] !== $post_user_id) {
+if ($_SESSION['id'] !== $post['user_id']) {
     echo "게시물 수정 권한이 없습니다.";
     exit();
 }
 
-$file_path = $existing_file_path;
+$file_path = $post['file_path'];
 $error_message = '';
 $file_error_message = '';
 
@@ -39,68 +34,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($_POST['title']) && !empty($_POST['content'])) {
         $title = trim($_POST['title']);
         $content = trim($_POST['content']);
-        $upload_dir = UPLOAD_DIR;
 
         // 파일 업로드 처리
-        if (isset($_FILES['file']) && $_FILES['file']['error'] !== UPLOAD_ERR_NO_FILE) {
-            if ($_FILES['file']['error'] === UPLOAD_ERR_OK) {
-                $allowed_exts = ALLOWED_EXTS;
-                $file_ext = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
-                $max_file_size = MAX_FILE_SIZE; // 5MB
-
-                if ($_FILES['file']['size'] > $max_file_size) {
-                    $file_error_message = "파일 용량 초과 (최대 5MB)";
-                } elseif (!in_array($file_ext, $allowed_exts)) {
-                    $file_error_message = "허용되지 않는 파일 형식입니다.";
-                } else {
-                    $file_name = time() . '_' . uniqid() . '_' . basename($_FILES['file']['name']);
-                    $new_file_path = $upload_dir . $file_name;
-
-                    if (!is_dir($upload_dir)) {
-                        mkdir($upload_dir, 0777, true);
-                    }
-
-                    if (move_uploaded_file($_FILES['file']['tmp_name'], $new_file_path)) {
-                        // 기존 파일이 있으면 삭제
-                        if ($existing_file_path && file_exists($existing_file_path)) {
-                            unlink($existing_file_path);
-                        }
-                        $file_path = $new_file_path;
-                    } else {
-                        $file_error_message = "파일 업로드 실패!";
-                    }
-                }
-            } else {
-                $file_error_message = "파일 업로드 중 오류가 발생했습니다.";
-            }
+        $file_result = handleFileUpload($file_path);
+        if (is_array($file_result)) {
+            $file_path = $file_result['file_path'];
+            $file_error_message = $file_result['error_message'];
         }
 
         if (empty($file_error_message)) {
             // 게시물 업데이트
-            $stmt = $mysqli->prepare("UPDATE posts SET title = ?, content = ?, file_path = ? WHERE id = ?");
-            $stmt->bind_param("sssi", $title, $content, $file_path, $id);
-
-            if ($stmt->execute()) {
+            if (updatePost($id, $title, $content, $file_path)) {
                 echo "<script>alert('게시물이 수정되었습니다.'); window.location.href='index.php';</script>";
                 exit();
             } else {
                 $error_message = "게시물 수정 실패!";
             }
-
-            $stmt->close();
         }
     } else {
-        $error_message = "파일 업로드 중 오류가 발생했습니다. (파일 용량 초과 or 허용되지 않는 파일 형식)";
+        $error_message = "제목과 내용을 입력해야 합니다.";
     }
 }
 
 // 게시물 데이터 재조회
-$stmt = $mysqli->prepare("SELECT title, content, file_path FROM posts WHERE id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$post = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-$mysqli->close();
+$post = fetchPost($id);
 ?>
 
 <!DOCTYPE html>
