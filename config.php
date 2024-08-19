@@ -1,24 +1,18 @@
 <?php
+// DB 설정
+define('DB_SERVER', 'localhost');
+define('DB_USERNAME', 'root');
+define('DB_PASSWORD', '');
+define('DB_NAME', 'board');
 
+// 파일 업로드 경로
+define('UPLOAD_DIR', __DIR__ . '/uploads/');
 
-// DB 연결 정보
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "board";
+// 파일 업로드 최대 크기
+define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
 
-// MySQL 연결
-$mysqli = new mysqli($servername, $username, $password, $dbname);
+// 파일 업로드 허용 형식
+define('ALLOWED_EXTS', ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'c', 'sql']);
 
-// 연결 확인
-if ($mysqli->connect_error) {
-    die("Connecion failed: " . $mysqli->connection_error);
-}
-
-
-
-// 적용
-// create_post
-// index
 ?>
 

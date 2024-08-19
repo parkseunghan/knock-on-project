@@ -28,9 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 파일 업로드 처리
             if (isset($_FILES['file'])) {
                 if ($_FILES['file']['error'] === UPLOAD_ERR_OK) {
-                    $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'c', 'sql'];
+                    $allowed_exts = ALLOWED_EXTS;
                     $file_ext = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
-                    $max_file_size = 5 * 1024 * 1024; // 5MB
+                    $max_file_size = MAX_FILE_SIZE;
 
                     if ($_FILES['file']['size'] > $max_file_size) {
                         $file_error_message = "파일 용량 초과 (최대 5MB)";
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $file_error_message = "허용되지 않는 파일 형식입니다.";
                     } else {
                         $file_name = time() . '_' . uniqid() . '_' . basename($_FILES['file']['name']);
-                        $upload_dir = __DIR__ . '/uploads/';
+                        $upload_dir = UPLOAD_DIR;
                         $new_file_path = $upload_dir . $file_name;
 
                         if (!is_dir($upload_dir)) {
