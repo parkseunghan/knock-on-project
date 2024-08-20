@@ -1,12 +1,6 @@
 <?php
 require_once 'init.php';
-
-
-// 사용자가 로그인했는지 확인
-if (!isset($_SESSION['id'])) {
-    echo "로그인이 필요합니다.";
-    exit();
-}
+require_once 'auth.php';
 
 if (isset($_GET['file']) && !is_array($_GET['file'])) {
     $file_path = $_GET['file'];

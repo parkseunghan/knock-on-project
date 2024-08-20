@@ -1,10 +1,6 @@
 <?php
 require_once 'init.php';
-
-if (!isset($_SESSION['id'])) {
-    header('Location: login.php');
-    exit();
-}
+require_once 'auth.php';
 
 // 게시물 ID 검증
 $id = isset($_GET['id']) && !is_array($_GET['id']) ? intval($_GET['id']) : null;

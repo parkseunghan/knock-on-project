@@ -1,5 +1,6 @@
 <?php
 require_once 'init.php'; // init.php에 이미 functions.php가 포함되어 있다고 가정
+require_once 'auth.php';
 
 $query = isset($_GET['query']) ? $mysqli->real_escape_string($_GET['query']) : '';
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;

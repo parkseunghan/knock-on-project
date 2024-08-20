@@ -1,11 +1,6 @@
 <?php
 require_once 'init.php'; // init.php에 이미 functions.php가 포함되어 있다고 가정
-
-// 로그인 여부 확인
-if (!isset($_SESSION['id'])) {
-    header('Location: login.php');
-    exit();
-}
+require_once 'auth.php';
 
 // 현재 사용자 ID
 $user_id = $_SESSION['id'];

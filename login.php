@@ -1,6 +1,11 @@
 <?php
 require_once 'init.php';
 
+// 이미 로그인 된 경우 index.php로 리다이렉트
+if (isset($_SESSION['id'])) {
+    header('Location: index.php');
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);

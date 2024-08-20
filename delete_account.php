@@ -1,11 +1,6 @@
 <?php
 require_once 'init.php';
-
-// 로그인 여부 확인
-if (!isset($_SESSION['id'])) {
-    header('Location: login.php');
-    exit();
-}
+require_once 'auth.php';
 
 // 현재 사용자 ID
 $user_id = $_SESSION['id'];

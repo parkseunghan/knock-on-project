@@ -1,16 +1,9 @@
 <?php
 require_once 'init.php';
 
+require_once 'auth.php';
 // 사용자 인증 확인
-if (!isset($_SESSION['id']) && isset($_COOKIE['id']) && isset($_COOKIE['username'])) {
-    $_SESSION['id'] = $_COOKIE['id'];
-    $_SESSION['username'] = $_COOKIE['username'];
-}
 
-if (!isset($_SESSION['id'])) {
-    header('Location: login.php');
-    exit();
-}
 
 $post_per_page = POST_PER_PAGE;
 

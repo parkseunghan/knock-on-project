@@ -1,5 +1,6 @@
 <?php
 require_once 'init.php';
+require_once 'auth.php';
 
 // URL에서 게시물 ID 가져오기
 if (isset($_GET['id']) && !is_array($_GET['id'])) {

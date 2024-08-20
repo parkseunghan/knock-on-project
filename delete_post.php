@@ -1,11 +1,6 @@
 <?php
 require_once 'init.php';
-
-// 사용자가 로그인했는지 확인
-if (!isset($_SESSION['id'])) {
-    header('Location: login.php');
-    exit();
-}
+require_once 'auth.php';
 
 // 게시물 ID 검증
 if (isset($_GET['id']) && !is_array($_GET['id'])) {

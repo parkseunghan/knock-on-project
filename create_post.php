@@ -1,10 +1,6 @@
 <?php
 require_once 'init.php';
-
-if (!isset($_SESSION['id'])) {
-    header('Location: login.php');
-    exit();
-}
+require_once 'auth.php';
 
 $error_message = '';
 $file_error_message = '';
