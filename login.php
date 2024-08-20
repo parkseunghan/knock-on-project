@@ -7,6 +7,7 @@ if (isset($_SESSION['id'])) {
     exit();
 }
 
+$errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
@@ -16,30 +17,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $errors[] = "아이디와 비밀번호를 입력해주세요.";
     } else {
-        // 사용자 인증
-	
-   
-
         $stmt = $mysqli->prepare("SELECT id, password FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $stmt->bind_result($id, $hashed_password);
         $stmt->fetch();
         $stmt->close();
-        $mysqli->close();
-
+        
         if ($id && password_verify($password, $hashed_password)) {
             // 세션에 사용자 정보 저장
+            session_regenerate_id(true); // 세션 ID 재생성
             $_SESSION['id'] = $id;
             $_SESSION['username'] = $username;
 
             // "로그인 상태 유지" 체크박스가 선택된 경우
             if ($remember_me) {
-                // 쿠키 설정 (7일 동안 유효)
+                // 쿠키 설정 (7일 동안 유효) - 보안 플래그 추가
                 $cookie_time = time() + (7 * 24 * 60 * 60);  // 7일
-                setcookie('id', $id, $cookie_time, "/");
-                setcookie('username', $username, $cookie_time, "/");
-                setcookie('remember_me', 'true', $cookie_time, "/");
+                setcookie('id', $id, $cookie_time, "/", "", true, true); // Secure 및 HttpOnly 플래그 설정
+                setcookie('username', $username, $cookie_time, "/", "", true, true);
+                setcookie('remember_me', 'true', $cookie_time, "/", "", true, true);
             }
 
             echo "<script>alert('로그인 성공!'); window.location.href = 'index.php';</script>";
@@ -48,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "아이디 또는 비밀번호가 잘못되었습니다.";
         }
     }
+    $mysqli->close();
 }
 ?>
 
@@ -64,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if (!empty($errors)): ?>
         <ul>
             <?php foreach ($errors as $error): ?>
-                <li><?php echo htmlspecialchars($error); ?></li>
+                <li><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></li>
             <?php endforeach; ?>
         </ul>
     <?php endif; ?>
