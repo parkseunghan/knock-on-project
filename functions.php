@@ -185,7 +185,7 @@ function getAuthorUsername($mysqli, $post_user_id) {
 // 사용자가 작성한 게시물을 가져오기
 function getUserPosts($mysqli, $user_id) {
     $stmt = $mysqli->prepare("
-        SELECT id, title, content, created_at, updated_at 
+        SELECT id, title, content, created_at, updated_at, file_path
         FROM posts 
         WHERE user_id = ? 
         ORDER BY created_at DESC

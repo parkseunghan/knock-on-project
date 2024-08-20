@@ -71,11 +71,8 @@ $mysqli->close();
 
             <?php if ($row['file_path']): ?>
                 <p>첨부파일: <?php echo htmlspecialchars(basename($row['file_path'])); ?></p>
-
             <?php else: ?>
-
                 <p>첨부파일: 없음</p>
-
             <?php endif; ?>
 
             <hr>
