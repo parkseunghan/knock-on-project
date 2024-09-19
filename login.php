@@ -8,7 +8,7 @@ if (isset($_SESSION['id'])) {
 }
 
 $errors = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { 
     $username = trim($_POST['username']);
     $password = $_POST['password'];
     $remember_me = isset($_POST['remember_me']);  // "로그인 상태 유지" 체크박스 확인

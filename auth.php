@@ -7,5 +7,5 @@ if (!isset($_SESSION['id']) && isset($_COOKIE['id']) && isset($_COOKIE['username
 if (!isset($_SESSION['id'])) {
     header('Location: login.php');
     exit();
-}
+} # dfs
 ?>
