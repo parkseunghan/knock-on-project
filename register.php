@@ -42,9 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['check_username'])) {
         if ($stmt->num_rows > 0) {
             $errors[] = "이미 존재하는 아이디입니다.";
         } else {
-            $password_hashed = password_hash($password, PASSWORD_DEFAULT);
+            // $password_hashed = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $mysqli->prepare("INSERT INTO users (username, nickname, password) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $username, $nickname, $password_hashed);
+            $stmt->bind_param("sss", $username, $nickname, $password);
 
             if ($stmt->execute()) {
                 echo "<script>alert('회원가입 성공!'); window.location.href = 'login.php';</script>";

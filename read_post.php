@@ -2,6 +2,7 @@
 require_once 'init.php';
 require_once 'auth.php';
 
+
 // URL에서 게시물 ID 가져오기
 if (isset($_GET['id']) && !is_array($_GET['id'])) {
     $id = intval($_GET['id']);
@@ -29,7 +30,10 @@ if ($updated_at) {
     $display_date .= ' (수정일: ' . $updated_at->format('Y. m. d H:i') . ')';
 }
 
-$is_author = isset($_SESSION['id']) && $_SESSION['id'] === $post['user_id'];
+
+// SESSION과 post를 명시적으로 정수로 설정하여 비교
+$is_author = isset($_SESSION['id']) && intval($_SESSION['id']) === intval($post['user_id']);
+
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +57,8 @@ $is_author = isset($_SESSION['id']) && $_SESSION['id'] === $post['user_id'];
 
     <hr>
     <br>
-    <p><?php echo nl2br(htmlspecialchars($post['content'])); ?></p>
+    <!-- <p> echo nl2br(htmlspecialchars($post['content'])); </p> -->
+    <p><?php echo $post['content']; ?></p>
     <br>
   
     <?php if ($post['file_path']): ?>

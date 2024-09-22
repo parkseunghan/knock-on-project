@@ -2,7 +2,8 @@
 require_once 'init.php';
 require_once 'auth.php';
 
-// 게시물 ID 검증
+
+//게시물 ID 검증
 $id = isset($_GET['id']) && !is_array($_GET['id']) ? intval($_GET['id']) : null;
 if ($id === null) {
     echo "잘못된 요청입니다.";
@@ -17,10 +18,10 @@ if (!$post) {
 }
 
 // 로그인한 사용자가 게시물의 작성자인지 확인
-if ($_SESSION['id'] !== $post['user_id']) {
-    echo "게시물 수정 권한이 없습니다.";
-    exit();
-}
+// if ($_SESSION['id'] !== $post['user_id']) {
+//     echo "게시물 수정 권한이 없습니다.";
+//     exit();
+// }
 
 $file_path = $post['file_path'];
 $error_message = '';

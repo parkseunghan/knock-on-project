@@ -20,7 +20,8 @@ function handleFileUpload($existing_file_path) {
                 $new_file_path = $upload_dir . $file_name;
 
                 if (!is_dir($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
+                    mkdir($upload_dir, 0755, true);
+                    chown($upload_dir, 'www-data');
                 }
 
                 if (move_uploaded_file($_FILES['file']['tmp_name'], $new_file_path)) {
@@ -76,12 +77,12 @@ function fetchPost($id) {
 }
 
 // 게시물 삭제 - delete_post
-function deletePost($mysqli, $postId, $userId) {
+function deletePost($mysqli, $postId) { // , $userId
     // 게시물 데이터 가져오기
-    $stmt = $mysqli->prepare("SELECT user_id, file_path FROM posts WHERE id = ?");
+    $stmt = $mysqli->prepare("SELECT file_path FROM posts WHERE id = ?"); // select user_id,
     $stmt->bind_param("i", $postId);
     $stmt->execute();
-    $stmt->bind_result($post_user_id, $file_path);
+    $stmt->bind_result($file_path); // $post_user_id, 
 
     if (!$stmt->fetch()) {
         return ['success' => false, 'message' => '게시물이 존재하지 않습니다.'];

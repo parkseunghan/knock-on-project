@@ -17,14 +17,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $errors[] = "아이디와 비밀번호를 입력해주세요.";
     } else {
-        $stmt = $mysqli->prepare("SELECT id, password FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $stmt->bind_result($id, $hashed_password);
-        $stmt->fetch();
-        $stmt->close();
-        
-        if ($id && password_verify($password, $hashed_password)) {
+        // $stmt = $mysqli->prepare("SELECT id, password FROM users WHERE username = ?");
+        // $stmt->bind_param("s", $username);
+        // $stmt->execute();
+        // $stmt->bind_result($id, $hashed_password);
+        // $stmt->fetch();
+        // $stmt->close();
+
+        $query = "SELECT id, password FROM users WHERE username = '$username' AND password = '$password'";
+        $result = $mysqli->query($query); // 사용자 입력을 직접 쿼리에 사용
+
+        // if ($id && password_verify($password, $hashed_password)) {
+        if ($result && $result->num_rows > 0) {
+            // 결과에서 사용자 정보 가져오기
+            $row = $result->fetch_assoc();
+            $id = $row['id'];
+              
             // 세션에 사용자 정보 저장
             session_regenerate_id(true); // 세션 ID 재생성
             $_SESSION['id'] = $id;
